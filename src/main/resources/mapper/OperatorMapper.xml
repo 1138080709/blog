@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.blog.system.dao.OperatorMapper">
+  <resultMap id="BaseResultMap" type="com.wu.blog.system.entity.Operator">
+    <id column="operator_id" jdbcType="INTEGER" property="operatorId" />
+    <result column="menu_id" jdbcType="INTEGER" property="menuId" />
+    <result column="operator_name" jdbcType="VARCHAR" property="operatorName" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="perms" jdbcType="VARCHAR" property="perms" />
+    <result column="http_method" jdbcType="VARCHAR" property="httpMethod" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    operator_id, menu_id, operator_name, url, perms, http_method, create_time, modify_time
+  </sql>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from operator
+  </select>
+
+  <insert id="insert" keyColumn="operator_id" keyProperty="operatorId" parameterType="com.wu.blog.system.entity.Operator"
+          useGeneratedKeys="true">
+    insert into operator (menu_id, operator_name, url,
+    perms, http_method)
+    values (#{menuId,jdbcType=INTEGER}, #{operatorName,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR},
+    #{perms,jdbcType=VARCHAR}, #{httpMethod,jdbcType=VARCHAR})
+  </insert>
+  
+  <select id="selectById" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from operator
+    where operator_id=#{operatorId,jdbcType=INTEGER}
+  </select>
+  
+  <select id="selectByMenuId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from operator
+    where menu_id = #{menuId,jdbcType=INTEGER}
+  </select>
+
+  <update id="update" parameterType="com.wu.blog.system.entity.Operator">
+    update operator
+    <trim prefix="set" suffixOverrides=",">
+      <if test="menuId != null and menuId != ''">
+        menu_id = #{menuId,jdbcType=INTEGER},
+      </if>
+      <if test="operatorName != null and operatorName != ''">
+        operator_name = #{operatorName,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null and url != ''">
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="perms != null and perms != ''">
+        perms = #{perms,jdbcType=VARCHAR},
+      </if>
+      <if test="httpMethod != null and httpMethod != ''">
+        http_method = #{httpMethod,jdbcType=VARCHAR},
+      </if>
+    </trim>
+    where operator_id=#{operatorId,jdbcType=INTEGER}
+  </update>
+
+  <delete id="delete" parameterType="java.lang.Integer">
+    delete
+    from operator
+    where operator_id=#{operatorId,jdbcType=INTEGER}
+  </delete>
+
+  <delete id="deleteByMenuId" parameterType="java.lang.Integer">
+    delete
+    from operator
+    where menu_id=#{menuId,jdbcType=INTEGER}
+  </delete>
+</mapper>

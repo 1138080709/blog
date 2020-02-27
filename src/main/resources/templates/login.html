@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>后台登录-X-admin2.0</title>
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon" />
+    <link rel="stylesheet" th:href="@{/css/font.css}">
+    <link rel="stylesheet" th:href="@{/css/xadmin.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+
+</head>
+<body class="login-bg">
+<div class="login layui-anim layui-anim-up">
+    <div align="center">
+        <img src="images/image.png">
+<!--                <p>管理系统</p>-->
+    </div>
+    <hr class="hr20">
+    <form method="post" class="layui-form" >
+        <input name="username" lay-verify="required" placeholder="用户名"  type="text"  class="layui-input" value="admin">
+        <hr class="hr15">
+        <input name="password" lay-verify="required" placeholder="密码"  type="password" class="layui-input">
+        <hr class="hr15">
+        <input name="captcha" lay-verify="required" placeholder="验证码" style="width:50%;" type="text"
+               class="layui-input-inline layui-input">
+
+        <img onclick="generateCaptcha(this)" th:src="@{/captcha(timestamp=${new java.util.Date().getTime()})}"/>
+        <hr class="hr20">
+        <input value="登录" lay-submit lay-filter="login" style="width:100%;background:#1E9FFF;" type="submit">
+        <hr class="hr30" >
+        <div class="layui-input-inline">
+            <div class="layui-form-mid layui-word-aux layui-login-tips">第三方账号登录: </div>
+            <img th:src="@{/images/github.png}" onclick="oauth2_github()" class="layui-login-oauth-icon" title="Github 登录">
+            <img th:src="@{/images/gitee.png}" onclick="oauth2_gitee()" class="layui-login-oauth-icon" title="Gitee 登录">
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript" th:src="@{/js/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/lib/layui/layui.js}"></script>
+<script type="text/javascript" th:src="@{/js/xadmin.js}"></script>
+<script type="text/javascript" th:src="@{/js/common.js}"></script>
+<script type="text/javascript">
+
+    function oauth2_github() {
+        $.get('/oauth2/render/github',function (data) {
+            console.log(data);
+            handlerResult(data,renderDone);
+        })
+    }
+
+    function oauth2_gitee() {
+        $.get('/oauth2/render/gitee',function (data) {
+            console.log(data);
+            handlerResult(data,renderDone);
+        })
+    }
+
+    function renderDone(data) {
+        var winObj=window.open(data,'height=500, width=500, top=0, left=0, toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, status=no')
+        var loop=setInterval(function () {
+            if(winObj.closed) {
+                clearInterval(loop);
+                window.location.href = '/main?=timestap'+ new Date().getTime();
+            }
+        })
+    }
+
+    // 如果在iframe中，则跳出iiframe
+    if(self!=top) {
+        top.location.href=location.href;
+    }
+    $(function () {
+        layui.use(['form'],function () {
+            // 操作对象
+            var form=layui.form;
+            form.on('submit(login)',function (data) {
+                $.post('login',data.field,function (result) {
+                    handlerResult(result,loginDone);
+                });
+                return false;
+            });
+        });
+    });
+    
+    function loginDone(obj) {
+        layer.msg("登陆成功，即将跳转到首页!",{
+            icon: 1,
+            time: 1000
+        },function () {
+            location.href = '/main?=timestamp'+ new Date().getTime();
+        });
+    }
+    
+    function generateCaptcha(obj) {
+        $(obj).attr("src", "/captcha?timestamp=" + (new Date()).valueOf());
+    }
+</script>
+
+
+<!-- 底部结束 -->
+</body>
+</html>

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.blog.system.dao.MenuMapper">
+
+    <resultMap id="BaseResultMap" type="com.wu.blog.system.entity.Menu">
+        <id column="menu_id" jdbcType="INTEGER" property="menuId"/>
+        <result column="parent_id" jdbcType="INTEGER" property="parentId"/>
+        <result column="menu_name" jdbcType="VARCHAR" property="menuName"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="perms" jdbcType="VARCHAR" property="perms"/>
+        <result column="order_num" jdbcType="INTEGER" property="orderNum"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+        <result column="icon" jdbcType="VARCHAR" property="icon"/>
+    </resultMap>
+
+    <resultMap id="TreeBaseResultMap" type="com.wu.blog.system.entity.Menu">
+        <id column="menu_id" jdbcType="INTEGER" property="menuId"/>
+        <result column="parent_id" jdbcType="INTEGER" property="parentId"/>
+        <result column="menu_name" jdbcType="VARCHAR" property="menuName"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="perms" jdbcType="VARCHAR" property="perms"/>
+        <result column="order_num" jdbcType="INTEGER" property="orderNum"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+        <result column="icon" jdbcType="VARCHAR" property="icon"/>
+        <collection property="children" ofType="com.wu.blog.system.entity.Menu" select="selectAllTree" column="{parent_id = menu_id}"/>
+    </resultMap>
+
+    <resultMap id="TreeBaseResultMap2" type="com.wu.blog.system.entity.Menu">
+        <id column="menu_id" jdbcType="INTEGER" property="menuId"/>
+        <result column="parent_id" jdbcType="INTEGER" property="parentId"/>
+        <result column="menu_name" jdbcType="VARCHAR" property="menuName"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="perms" jdbcType="VARCHAR" property="perms"/>
+        <result column="order_num" jdbcType="INTEGER" property="orderNum"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+        <result column="icon" jdbcType="VARCHAR" property="icon"/>
+        <collection property="children" ofType="com.wu.blog.system.entity.Menu" select="selectAllMenuAndCountOperator" column="{parent_id = menu_id}"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        menu_id, parent_id, menu_name, url, perms, order_num, create_time, modify_time, icon
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from menu
+        where menu_id = #{menuId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from menu
+        order by order_num
+    </select>
+
+    <select id="selectByParentId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from menu
+        <if test="_parameter != null">
+            where parent_id = #{parentId}
+        </if>
+        order by order_num
+    </select>
+
+    <insert id="insert" keyColumn="menu_id" keyProperty="menuId" parameterType="com.wu.blog.system.entity.Menu"
+            useGeneratedKeys="true">
+        insert into menu (parent_id, menu_name, url,
+        perms, order_num, icon
+        )
+        values (#{parentId,jdbcType=INTEGER}, #{menuName,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR},
+        #{perms,jdbcType=VARCHAR}, #{orderNum}, #{icon}
+        )
+    </insert>
+
+    <select id="selectAllMenuAndCountOperator" resultMap="TreeBaseResultMap2">
+        select menu_id,
+               parent_id,
+               concat(menu_name, (select if(count(*) = 0, '', concat('(', count(*), ')'))
+                                  from operator
+                                  where operator.menu_id = menu.menu_id)) as menu_name,
+               url,
+               perms,
+               order_num,
+               create_time,
+               modify_time,
+               icon
+        from menu
+        <where>
+            <choose>
+                <when test="parent_id != null">
+                    and parent_id = #{parent_id}
+                </when>
+                <otherwise>
+                    and parent_id = 0
+                </otherwise>
+            </choose>
+        </where>
+        order by order_num
+    </select>
+
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete
+        from menu
+        where menu_id = #{menuId,jdbcType=INTEGER}
+    </delete>
+
+    <delete id="deleteByParentId" parameterType="java.lang.Integer">
+        delete
+        from menu
+        where parent_id = #{parentId,jdbcType=INTEGER}
+    </delete>
+
+    <select id="selectChildrenIdById" parameterType="java.lang.Integer" resultType="int">
+        select menu_id
+        from menu
+        where parent_id = #{menuId, jdbcType=INTEGER}
+    </select>
+
+    <select id="selectMenuByUsername" resultMap="BaseResultMap">
+        select distinct menu.menu_id,
+                        menu.parent_id,
+                        menu.menu_name,
+                        menu.url,
+                        menu.perms,
+                        menu.order_num,
+                        menu.icon
+        from user,
+             role,
+             user_role,
+             menu,
+             role_menu
+        where user.user_id = user_role.user_id
+          and role.role_id = user_role.role_id
+          and role.role_id = role_menu.role_id
+          and menu.menu_id = role_menu.menu_id
+          and user.username = #{username}
+    </select>
+
+    <select id="count" resultType="java.lang.Integer">
+        select count(*)
+        from menu
+    </select>
+
+    <update id="update" parameterType="com.wu.blog.system.entity.Menu">
+         update menu
+         <trim prefix="set" suffixOverrides=",">
+            <if test="parentId != null and parentId != ''">
+            parent_id = #{parentId,jdbcType=INTEGER},
+            </if>
+             <if test="menuName != null and menuName != ''">
+            menu_name = #{menuName,jdbcType=VARCHAR},
+             </if>
+             <if test="url != null and url != ''">
+            url = #{url,jdbcType=VARCHAR},
+             </if>
+             <if test="perms != null and perms != ''">
+            perms = #{perms,jdbcType=VARCHAR},
+             </if>
+             <if test="orderNum != null and orderNum != ''">
+            order_num = #{orderNum,jdbcType=INTEGER},
+             </if>
+             <if test="icon != null and icon !=''">
+            icon = #{icon,jdbcType=VARCHAR},
+             </if>
+         </trim>
+         where menu_id = #{menuId,jdbcType=INTEGER}
+    </update>
+
+    <update id="swapSort">
+        UPDATE
+            menu AS per
+                JOIN
+                menu AS next
+                ON
+                        (per.`menu_id` = #{currentId} AND next.`menu_id` = #{swapId})
+                        OR
+                        (per.`menu_id` = #{swapId} AND next.`menu_id` = #{currentId})
+        SET per.`order_num`  = next.`order_num`,
+            next.`order_num` = per.`order_num`
+    </update>
+
+    <select id="selectMaxOrderNum" resultType="java.lang.Integer">
+        select ifnull(max(order_num), 0)
+        from menu
+    </select>
+
+
+    <select id="selectAllTree" resultMap="TreeBaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from menu
+        <where>
+            <choose>
+                <when test="parent_id != null">
+                    and parent_id = #{parent_id}
+                </when>
+                <otherwise>
+                    and parent_id = 0
+                </otherwise>
+            </choose>
+        </where>
+        order by order_num
+    </select>
+
+</mapper>

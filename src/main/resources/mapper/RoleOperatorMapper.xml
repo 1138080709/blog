@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.blog.system.dao.RoleOperatorMapper">
+  <resultMap id="BaseResultMap" type="com.wu.blog.system.entity.RoleOperator">
+    <id column="role_id" jdbcType="INTEGER" property="roleId" />
+    <id column="operator_id" jdbcType="INTEGER" property="operatorId" />
+  </resultMap>
+  <delete id="deleteByRoleId" parameterType="java.lang.Integer">
+    delete
+    from role_operator
+    where role_id=#{roleId,jdbcType=INTEGER}
+  </delete>
+
+  <select id="insertRoleOperators">
+    insert into role_operator(
+    role_id,operator_id
+    )values
+    <foreach collection="operatorIds" item="operatorId" index="index" separator=",">
+        (
+        #{roleId},
+        #{operatorId}
+      )
+    </foreach>
+  </select>
+
+  <select id="getOperatorsByRoleId" resultType="java.lang.Integer">
+    select operator_id
+    from role_operator
+    where role_id=#{roleId}
+  </select>
+</mapper>

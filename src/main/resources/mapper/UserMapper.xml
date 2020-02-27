@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.blog.system.dao.UserMapper">
+
+
+      <resultMap id="BaseResultMap" type="com.wu.blog.system.entity.User">
+        <id column="user_id" jdbcType="INTEGER" property="userId" />
+        <result column="username" jdbcType="VARCHAR" property="username" />
+        <result column="password" jdbcType="VARCHAR" property="password" />
+        <result column="salt" jdbcType="VARCHAR" property="salt" />
+        <result column="email" jdbcType="VARCHAR" property="email" />
+        <result column="status" jdbcType="CHAR" property="status" />
+        <result column="last_login_time" jdbcType="TIMESTAMP" property="lastLoginTime" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+        <result column="active_code" jdbcType="VARCHAR" property="activeCode"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+    user_id, username, password, salt, email, status, last_login_time, create_time, modify_time, active_code
+  </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from user
+        where user_id = #{userId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="insert" keyColumn="user_id" keyProperty="userId" parameterType="com.wu.blog.system.entity.User"
+            useGeneratedKeys="true">
+      insert into user (username, password, salt, email, status, last_login_time, active_code)
+      values (#{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{salt,jdbcType=VARCHAR},
+            #{email,jdbcType=VARCHAR}, #{status,jdbcType=CHAR}, #{lastLoginTime,jdbcType=TIMESTAMP},
+            #{activeCode,jdbcType=VARCHAR})
+  </insert>
+
+    <select id="selectRoleNameByUsername" resultType="java.lang.String" parameterType="java.lang.String">
+        select role.role_name
+        from user,
+             role,
+             user_role
+        where user.user_id = user_role.user_id
+          and role.role_id = user_role.role_id
+          and user.username = #{username,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectPermsByUsername" resultType="java.lang.String" parameterType="java.lang.String">
+        select menu.perms
+        from user,
+             role,
+             user_role,
+             menu,
+             role_menu
+        where user.user_id = user_role.user_id
+          and role.role_id = user_role.role_id
+          and role.role_id = role_menu.role_id
+          and menu.menu_id = role_menu.menu_id
+          and user.username = #{username, jdbcType=VARCHAR}
+    </select>
+    
+    <select id="selectOperatorPermsByUsername" resultType="java.lang.String" parameterType="java.lang.String">
+        select operator.perms
+        from user,
+             role,
+             user_role,
+             operator,
+             role_operator
+        where user.user_id = user_role.user_id
+          and role.role_id = user_role.role_id
+          and role.role_id = role_operator.role_id
+          and operator.operator_id = role_operator.operator_id
+          and user.username = #{username, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectOneByUsername" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from user
+        where username=#{username,jdbcType=VARCHAR} limit 1
+    </select>
+
+    <select id="countByUserName" resultType="java.lang.Integer">
+        select count(*)
+        from user
+        where username = #{username,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByActiveCode" resultMap="BaseResultMap">
+      select *
+      from user
+      where active_code= #{activeCode,jdbcType=VARCHAR}
+  </select>
+
+    <update id="updateLastLoginTimeByUsername">
+        update user
+        set last_login_time = current_timestamp
+        where username = #{username,jdbcType=VARCHAR}
+  </update>
+
+    <update id="activeUserByUserId">
+      update user
+      set status=1
+      where user_id=#{userId,jdbcType=INTEGER}
+  </update>
+
+    <select id="selectAllWithInfo" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from user
+        where 1=1
+        <trim>
+            <if test="username != null and username != ''">
+                and username like '%'#{username}'%'
+            </if>
+            <if test="email != null and email != ''">
+                and email like '%'#{email}'%'
+            </if>
+        </trim>
+    </select>
+
+    <select id="selectRoleIdsByUserId" resultType="java.lang.Integer">
+      select role_id
+      from user_role
+      where user_id=#{userId}
+  </select>
+
+    <select id="countByUserNameNotIncludeUserId" resultType="java.lang.Integer">
+      select count(*)
+      from user
+      where username = #{username}
+      and user_id != #{userId}
+  </select>
+
+    <update id="update" parameterType="com.wu.blog.system.entity.User">
+        update user
+        <set>
+            <if test="username != null">
+                username = #{username,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                password = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="salt != null">
+                salt = #{salt,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                email = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=CHAR},
+            </if>
+            <if test="lastLoginTime != null">
+                last_login_time = #{lastLoginTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where user_id = #{userId,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateStatusById">
+        update user
+        set status = #{status}
+        where user_id = #{userId}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete
+        from user
+        where user_id = #{userId,jdbcType=INTEGER}
+    </delete>
+
+    <update id="updatePasswordById">
+        update user
+        set password = #{password},
+            salt     = #{salt}
+        where user_id = #{userId}
+    </update>
+    <select id="count" resultType="java.lang.Integer">
+        select count(*)
+        from user
+    </select>
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wu.blog.system.dao.SortsMapper">
+  <resultMap id="BaseResultMap" type="com.wu.blog.system.entity.Sorts">
+    <id column="sort_id" jdbcType="INTEGER" property="sortId" />
+    <result column="sort_name" jdbcType="VARCHAR" property="sortName" />
+    <result column="sort_alias" jdbcType="VARCHAR" property="sortAlias" />
+    <result column="sort_remark" jdbcType="VARCHAR" property="sortRemark" />
+    <result column="parent_sort_id" jdbcType="INTEGER" property="parentSortId" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    sort_id, sort_name, sort_alias, sort_remark, parent_sort_id
+  </sql>
+</mapper>
